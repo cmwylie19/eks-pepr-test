@@ -27,7 +27,7 @@ spec:
         - name: logs
           emptyDir: {} 
       containers:
-      - image: k8s-reporter:0.0.1
+      - image: docker.io/cmwylie19/k8s-reporter:0.0.1
         name: k8s-reporter
         resources:
           requests:
@@ -41,7 +41,7 @@ spec:
         volumeMounts:
           - name: logs
             mountPath: /tmp
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
 status: {}
 ---
 apiVersion: v1

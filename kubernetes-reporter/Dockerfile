@@ -7,7 +7,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o k8s-reporter .
 
 
-FROM busybox
+FROM alpine:3.18
 
 COPY --from=builder /app/k8s-reporter /k8s-reporter
 ENTRYPOINT ["/k8s-reporter"]
