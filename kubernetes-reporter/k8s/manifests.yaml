@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-reporter
+spec: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: k8s-reporter
+  name: k8s-reporter
+  namespace: k8s-reporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-reporter
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: k8s-reporter
+    spec:
+      serviceAccountName: k8s-reporter
+      volumes:
+        - name: logs
+          emptyDir: {} 
+      containers:
+      - image: k8s-reporter:0.0.1
+        name: k8s-reporter
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 250m
+            memory: 250Mi
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - name: logs
+            mountPath: /tmp
+        imagePullPolicy: IfNotPresent
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: k8s-reporter
+  name: k8s-reporter
+  namespace: k8s-reporter
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: k8s-reporter
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-reporter
+  namespace: k8s-reporter
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-reporter
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - services/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  - endpointslices/status
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-reporter-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-reporter
+subjects:
+- kind: ServiceAccount
+  name: k8s-reporter
+  namespace: k8s-reporter
